@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.db.utils import IntegrityError
 import json as js
 from django.core.exceptions import ValidationError
@@ -16,40 +16,18 @@ def email_check(email):
         return True
 
 
-def name_check(name):
-    symbols = ('.', ',', ':', ';','<', '>', '?', '"', "'", '[',']', '{', '}', '!','@', '#', '$', '%', "^", '&',
-               '*', '(', ')', '-', '=', '_', '+', "/", '\\',
-               )
-    try:
-        name, family_name = name.split(' ')
-        for word in name:
-            if word in symbols:
-                return False
-        for word in family_name:
-            if word in symbols:
-                return False
-
-        return True
-
-    except Exception:
-
-        return False
-
-
-
-
-def handler(request, json_str: str) -> HttpResponse:
-    data = js.loads(json_str)
+def handler(request) -> HttpResponse:
+    data = js.loads(request.body)
+    print(data)
     if email_check(data['email']):
-        if name_check(data['name']):
-            try:
-                user = User(name=data['name'], email=data['email'], text=data['text'])
-                user.save()
-            except IntegrityError:
-                return HttpResponse('Email уже занят')
-            return HttpResponse('Все четко')
-
-    return HttpResponse('НЕ ЧЕТКО')
+        try:
+            user = User(name=data['name'], email=data['email'], text=data['text'])
+            user.save()
+        except IntegrityError:
+            return JsonResponse({'result': 'saving error'})
+        return JsonResponse({'result': 'success'})
+    else:
+        return JsonResponse({'result': 'not valid email'})
 
 
 
