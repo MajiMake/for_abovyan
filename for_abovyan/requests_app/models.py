@@ -14,7 +14,7 @@ class User(models.Model):
         representing in admin
         """
 
-        return self.email
+        return self.name+ " " + self.phone_number
 
 
 
